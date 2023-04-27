@@ -1,7 +1,6 @@
 """
-This module, with only one function "initialized_data(), initializes data related to 
-substrate, monomer, enzyme, and microbe, as well as their distribution on the spatial grid,
-preceding the actual decompostion-related computations.
+This module has a number of functions which initializes different components of the model, including
+the grid (substrate, monomer, and enzymes), the microbes, and their distribution on the spatial grid.
 """
 import pandas as pd
 import numpy as np
