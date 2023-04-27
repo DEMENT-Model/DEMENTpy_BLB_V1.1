@@ -4,6 +4,7 @@ This module, utility.py, contains three functions facilitating the calculation.
     1) LHS():    perform 1-D latin hypercube sampling
     2) expand(): put a community on the spatial grid
     3) export(): export the output object to the local disk
+    4) build_runtime(): export runtime after changing n_taxa and taxa_per_box
 """
 
 import numpy as np
@@ -68,3 +69,10 @@ def export(output,name):
     
     with open(str(name) + ".pickle", "wb") as f:
         pickle.dump(output, f, pickle.HIGHEST_PROTOCOL)
+        
+# Build the runtime for every combination 
+def build_runtime(n_taxa, taxa_per_box):
+    tempRT=pd.read_csv('runtime.txt',header=None,index_col=0,sep='\t')
+    tempRT.loc['n_taxa',1]=n_taxa
+    tempRT.loc['taxa_per_box',1]=taxa_per_box
+    return tempRT
