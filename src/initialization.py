@@ -281,3 +281,90 @@ def initialize_data(runtime_parameters, grid_init, microbe_init):
                       }
 
     return Data_Dictionary
+    
+# Define function for sampling an initialization from the previous
+def sample_microbe_init(microbe_initialization, taxa, n_taxa, taxa_per_box):
+
+  # A few system constants
+  runtime    = pd.read_csv('runtime.txt',header=None,index_col=0,sep='\t')
+  gridsize = int(runtime.loc['gridsize',1])
+  # Set up some rules
+  # taxa=[0,2,3]
+  # n_taxa=3
+  # taxa_per_box=0.33
+  max_size_b=2
+  max_size_f=50
+  fb = np.random.choice([1,0], n_taxa, replace=True, p=[runtime.loc['fb',1],(1-runtime.loc['fb',1])]).astype('int8') #index of fungal taxa in a microbial pool (1);1-d array
+  BacC = 0.5  * max_size_b
+  FunC = 0.5 * max_size_f
+
+
+  ### Microbial Community List 
+  # Microbes_pp
+  df=microbe_initialization['microbial_community'][0].iloc[taxa,:]
+  microbes_array=np.tile(df,(gridsize,1))
+  index = ["Tax" + str(i) for i in [x+1 for x in taxa]] * gridsize
+  microbes_pp = pd.DataFrame(data=microbes_array, index=index, columns=["C","N","P"], dtype='float32')
+
+  # Export the microbial community preceding placement on the grid
+  microbes_df = microbes_pp.copy(deep=True)
+
+  # Derive the Fungi index by expanding the fb to the spatial grid
+  fb_grid = np.tile(fb,gridsize)
+  # Randomly place the microbial community created above on the spatial grid to initialize a spatially explicit microbial community by
+  pb = taxa_per_box
+  choose_taxa = np.random.choice([1,0], n_taxa*gridsize,replace=True, p=[pb,(1-pb)])
+  pf = pb * max_size_b/max_size_f
+  choose_taxa[fb_grid==1] = np.random.choice([1,0], sum(fb_grid),replace=True, p=[pf,(1-pf)])
+  microbes_df.loc[choose_taxa==0] = 0
+
+  # Derive the number of fungi and bacteria taxa
+  Bac_index = microbes_df['C'] == BacC
+  Fun_index = microbes_df['C'] == FunC
+  Bac_taxa = microbes_df[Bac_index].groupby(level=0).sum().shape[0]
+  Fun_taxa = microbes_df[Fun_index].groupby(level=0).sum().shape[0]
+  print('After placement--','Bac_taxa=',Bac_taxa,'Fun_taxa=',Fun_taxa)
+
+  Bac_density = sum(Bac_index)*BacC/gridsize
+  Fun_density = sum(Fun_index)*FunC/gridsize
+  print('After placement--','Bac_density=',Bac_density,'Fun_density=',Fun_density)
+
+  # Place together
+  microbial_community=[microbes_pp, microbes_df, fb_grid,Bac_density,Fun_density]
+
+  ### Binary dataframes  
+  microbial_min_ratios=microbe_initialization['microbial_min_ratios'].iloc[taxa,:]
+  microbial_enzyme_gene=microbe_initialization['microbial_enzyme_gene'].iloc[taxa,:]
+  microbial_osmolyte_gene=microbe_initialization['microbial_osmolyte_gene'].iloc[taxa,:] # 4 X 20 osmolytes binary dataframe
+  microbial_uptake_gene=microbe_initialization['microbial_uptake_gene'].iloc[taxa,:] # 4 by 14 monomer binary dataframe
+
+  ### Microbial_uptake_cost 
+  microbial_uptake_cost=[microbe_initialization['microbial_uptake_cost'][0][taxa], microbe_initialization['microbial_uptake_cost'][1].iloc[taxa,:]]
+
+  ### Microbial_enzyme_prod_rate
+  microbial_enzyme_prod_rate=[microbe_initialization['microbial_enzyme_prod_rate'][0][taxa], microbe_initialization['microbial_enzyme_prod_rate'][1][taxa], microbe_initialization['microbial_enzyme_prod_rate'][2].iloc[taxa,:], microbe_initialization['microbial_enzyme_prod_rate'][3].iloc[taxa,:]]
+
+  ### Microbial_osmolyte_prod_rate
+  microbial_osmolyte_prod_rate=[microbe_initialization['microbial_osmolyte_prod_rate'][0][taxa], microbe_initialization['microbial_osmolyte_prod_rate'][1][taxa], microbe_initialization['microbial_osmolyte_prod_rate'][2].iloc[taxa,:], microbe_initialization['microbial_osmolyte_prod_rate'][3].iloc[taxa,:]]
+
+  ### Microbial_drought_tol
+  microbial_drought_tol=microbe_initialization['microbial_drought_tol'][taxa]
+
+  ### Microbial_mortality
+  microbial_mortality=[microbe_initialization['microbial_mortality'][0][0:n_taxa*gridsize], microbe_initialization['microbial_mortality'][1][0:n_taxa*gridsize]]
+
+  ### Set up data dictionary
+  Data_Dictionary = {"microbial_community":microbial_community,
+                    "microbial_min_ratios":  microbial_min_ratios,
+                    "microbial_enzyme_gene": microbial_enzyme_gene,
+                    "microbial_osmolyte_gene": microbial_osmolyte_gene,
+                    "microbial_uptake_gene": microbial_uptake_gene,
+                    "microbial_uptake_cost": microbial_uptake_cost,
+                    "microbial_enzyme_prod_rate": microbial_enzyme_prod_rate,
+                    "microbial_osmolyte_prod_rate": microbial_osmolyte_prod_rate, 
+                    "microbial_drought_tol": microbial_drought_tol,
+                    "microbial_mortality": microbial_mortality
+  }
+
+  return Data_Dictionary
+
