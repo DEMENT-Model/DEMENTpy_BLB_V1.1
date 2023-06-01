@@ -1,0 +1,11 @@
+
+output/20220609-saturated-interactions.zip
+output/.DS_Store
+input/runtime2.txt
+input/grid_100X100.pickle
+input/climate2.csv
+DEMENT_interactions_1taxa.sh
+DEMENT_interactions_2taxa.sh
+DEMENT_interactions_3taxa.sh
+DEMENT_interactions_4taxa.sh
+.DS_Store
