@@ -433,10 +433,10 @@ class Microbe():
             Tax_tolerance: series;float32
         """
 
-        Tax_Osmo_Alloc = Tax_Induci_Osmo_C.sum(axis=1) + Tax_Consti_Osmo_C.sum(axis=1)
-        #Tax_tolerance = Tax_Osmo_Alloc.rank(axis=0,method='min')/self.n_taxa
-        Tax_tolerance = (Tax_Osmo_Alloc - Tax_Osmo_Alloc.min())/(Tax_Osmo_Alloc.max()-Tax_Osmo_Alloc.min())
-        Tax_tolerance = Tax_tolerance.fillna(0)
+        #Tax_Osmo_Alloc = Tax_Induci_Osmo_C.sum(axis=1) + Tax_Consti_Osmo_C.sum(axis=1)
+        Tax_Osmo_Alloc = Tax_Induci_Osmo_C.sum(axis=1)
+        Tax_tolerance  = (Tax_Osmo_Alloc - Tax_Osmo_Alloc.min())/(Tax_Osmo_Alloc.max()-Tax_Osmo_Alloc.min())
+        Tax_tolerance  = Tax_tolerance.fillna(0)
         
         return Tax_tolerance
     
